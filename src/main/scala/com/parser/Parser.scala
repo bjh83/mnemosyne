@@ -58,9 +58,14 @@ class AssemblyParser extends RegexParsers {
   val r_instruction: Parser[Instruction] = (r_instruction3 | r_shiftInstruction3 | r_instruction2 | jalr |
       r_instruction1_source | r_instruction1_dest | r_instruction0)
       
-  val i_instruction3: Parser[I_Instruction] = ("addi" | "addiu" | "andi" | "lb" | "lbu" | "lh" | "lhu" | "lw" | "lwc1" |
-      "ori" | "sb" | "slti" | "sltiu" | "sh" | "sw" | "swc1" | "xori") ~ register ~ ("," ~> register) ~ ("," ~> number) ^^ {
+  val i_instruction3: Parser[I_Instruction] = ("addi" | "addiu" | "andi" | "ori" | "slti" | "sltiu" |
+    "xori") ~ register ~ ("," ~> register) ~ ("," ~> number) ^^ {
     case opcode ~ dest ~ source ~ number => I_Instruction(opcode, dest, source, number)
+  }
+
+  val i_load_store_instruction: Parser[I_Instruction] = ("lb" | "lbu" | "lh" | "lhu" | "lw" | "lwc1" | "sb" | "sh" | "sw" |
+    "swc1") ~ register ~ ("," ~> number) ~ ("(" ~> register <~ ")") ^^ {
+    case opcode ~ dest ~ number ~ source => I_Instruction(opcode, dest, source, number)
   }
   
   val lui: Parser[I_Instruction] = "lui" ~ register ~ ("," ~> number) ^^ {
@@ -75,7 +80,7 @@ class AssemblyParser extends RegexParsers {
     case opcode ~ left ~ label => I_Instruction(opcode, left, Zero, labelTable(label))
   }
   
-  val i_instruction: Parser[Instruction] = i_instruction3 | lui | i_compareInstruction3 | i_compareInstruction2
+  val i_instruction: Parser[Instruction] = i_instruction3 | i_load_store_instruction | lui | i_compareInstruction3 | i_compareInstruction2
   
   val j_instruction: Parser[Instruction] = ("j" | "jal") ~ identifier ^^ {
     case opcode ~ label => J_Instruction(opcode, labelTable(label))
