@@ -1,5 +1,6 @@
+package com.parser
+
 import org.scalatest.FunSuite
-import com.parser._
 
 class R_InstructionSuite extends FunSuite {
   
