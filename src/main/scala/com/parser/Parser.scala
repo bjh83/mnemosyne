@@ -1,12 +1,25 @@
 package com.parser
 
 import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.combinator.Parsers.Parser
 import scala.collection.mutable.HashMap
 
 class AssemblyParser extends RegexParsers {
   
   private var lineCount = 0
   private var labelTable = new HashMap[String, Int]
+
+  private class LabelParser(val label: String) extends Parser {
+    var success = (labelTable contains label)
+    if(success) {
+      labelTable(label) = lineCount
+    }
+    override def apply(in: Input): ParseResult[String] = if(success) {
+      Success(label, in)
+    } else {
+      Failure(label + " was already used", in)
+    }
+  }
   
   val identifier: Parser[String] = """\w+""".r
   val number: Parser[Int] = """\d+""".r ^^ { _.toInt }
@@ -17,14 +30,7 @@ class AssemblyParser extends RegexParsers {
       "sltiu" | "sh" | "sw" | "swc1" | "xori" | "lui" | "beq" | "bne" | "bgez" | "bgtz" | "blez" |
       "bltz" | "j" | "jal")
       
-  val label: Parser[String] = not(checkInstruction) ~> (identifier <~ ":") ^^ { 
-    label => if(labelTable contains label) {
-      scala.sys.error("Label was already used")
-    } else {
-      labelTable(label) = lineCount
-      label
-    }
-  }
+  val label: Parser[String] = not(checkInstruction) ~> (identifier <~ ":") >> (name => new LabelParser(name))
   
   val r_instruction3: Parser[R_Instruction] = ("add" | "addu" | "and" | "nor" | "or" | "sllv" | "slt" |
       "sltu" | "srav" | "srlv" | "sub" | "subu" | "xor") ~ register ~ ("," ~> register) ~ ("," ~> register) ^^ {
