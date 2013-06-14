@@ -1,0 +1,2 @@
+# ignore the sbt build data
+target/
