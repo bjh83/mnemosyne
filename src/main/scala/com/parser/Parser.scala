@@ -30,7 +30,7 @@ class AssemblyParser extends RegexParsers {
       "sltiu" | "sh" | "sw" | "swc1" | "xori" | "lui" | "beq" | "bne" | "bgez" | "bgtz" | "blez" |
       "bltz" | "j" | "jal")
       
-  val label: Parser[String] = not(checkInstruction) ~> (identifier <~ ":") >> (name => new LabelParser(name))
+  val label: Parser[String] = not(checkInstruction | register) ~> (identifier <~ ":") >> (name => new LabelParser(name))
   
   val r_instruction3: Parser[R_Instruction] = ("add" | "addu" | "and" | "nor" | "or" | "sllv" | "slt" |
       "sltu" | "srav" | "srlv" | "sub" | "subu" | "xor") ~ register ~ ("," ~> register) ~ ("," ~> register) ^^ {
@@ -99,7 +99,7 @@ class AssemblyParser extends RegexParsers {
   val text: Parser[List[Instruction]] = line*
   
   val zero: Parser[Register] = "$zero" ^^ { _ => Zero }
-  val at: Parser[Register] = "$at" ^^ { _ => At }
+  val at: Parser[Register] = "$at" ^^ { _ => AT }
   val v0: Parser[Register] = "$v0" ^^ { _ => V0 }
   val v1: Parser[Register] = "$v1" ^^ { _ => V1 }
   val a0: Parser[Register] = "$a0" ^^ { _ => A0 }

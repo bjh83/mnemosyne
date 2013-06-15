@@ -7,7 +7,7 @@ sealed abstract class Register {
 case object Zero extends Register {
   override def toInt = 0
 }
-case object At extends Register {
+case object AT extends Register {
   override def toInt = 1
 }
 case object V0 extends Register {
