@@ -1,9 +1,12 @@
 package com.parser
 
+import scala.util.parsing.input.{CharSequenceReader, Reader}
 import org.scalatest.{FunSuite, BeforeAndAfter}
 
 class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
-  var parser: AssemblyParser
+  var parser: AssemblyParser = _
+
+  implicit def stringToReader(in: String): Reader[Char] = new CharSequenceReader(in)
 
   before {
     parser = new AssemblyParser

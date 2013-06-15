@@ -1,7 +1,6 @@
 package com.parser
 
 import scala.util.parsing.combinator.RegexParsers
-import scala.util.parsing.combinator.Parsers.Parser
 import scala.collection.mutable.HashMap
 
 class AssemblyParser extends RegexParsers {
@@ -9,7 +8,7 @@ class AssemblyParser extends RegexParsers {
   private var lineCount = 0
   private var labelTable = new HashMap[String, Int]
 
-  private class LabelParser(val label: String) extends Parser {
+  private class LabelParser(val label: String) extends Parser[String] {
     var success = (labelTable contains label)
     if(success) {
       labelTable(label) = lineCount
