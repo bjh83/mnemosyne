@@ -47,14 +47,14 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
   test("label only accept unique labels") {
     var result = parser.label("something:")
     assert(result successful)
-    assert(result === "something")
+    assert(result.get === "something")
     result = parser.label("something:")
     assert(!result.successful)
     result = parser.label("something:")
     assert(!result.successful)
     result = parser.label("magic:")
     assert(result successful)
-    assert(result === "magic")
+    assert(result.get === "magic")
     result = parser.label("magic:")
     assert(!result.successful)
   }

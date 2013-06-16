@@ -9,7 +9,7 @@ class AssemblyParser extends RegexParsers {
   private var labelTable = new HashMap[String, Int]
 
   private class LabelParser(val label: String) extends Parser[String] {
-    var success = (labelTable contains label)
+    var success = !(labelTable contains label)
     if(success) {
       labelTable(label) = lineCount
     }

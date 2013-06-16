@@ -6,7 +6,7 @@ class R_InstructionSuite extends FunSuite {
   
   test("sllv is the opcode, with all zero registers") {
     val instruction = R_Instruction("sllv", Zero, Zero, Zero)
-    assert(instruction.toInt === Integer.parseInt("00000000000000000000000000000100"), 2)
+    assert(instruction.toInt === Integer.parseInt("00000000000000000000000000000100", 2))
   }
   
   test("sllv is opcode, rd is a0, rs is v0, rt is v1") {
@@ -20,8 +20,8 @@ class R_InstructionSuite extends FunSuite {
   }
   
   test("invalid opcode") {
-    val thrown = intercept[MatchError] {
-      R_Instruction("j", Zero, Zero, Zero)
+    val thrown = intercept[IllegalArgumentException] {
+      R_Instruction("j", Zero, Zero, Zero).toInt
     }
   }
 }
@@ -33,8 +33,8 @@ class R_ShiftInstructionSuite extends FunSuite {
     assert(instruction.toInt === Integer.parseInt("00000000000000000000000000000000", 2))
   }
   
-  test("slr is instruction, registers are zero, immediate is zero") {
-    val instruction = R_ShiftInstruction("slr", Zero, Zero, 0)
+  test("srl is instruction, registers are zero, immediate is zero") {
+    val instruction = R_ShiftInstruction("srl", Zero, Zero, 0)
     assert(instruction.toInt === Integer.parseInt("00000000000000000000000000000010", 2))
   }
   
@@ -44,8 +44,8 @@ class R_ShiftInstructionSuite extends FunSuite {
   }
   
   test("invalid instruction") {
-    val thrown = intercept[MatchError] {
-      R_ShiftInstruction("jal", Zero, Zero, 0)
+    val thrown = intercept[IllegalArgumentException] {
+      R_ShiftInstruction("jal", Zero, Zero, 0).toInt
     }
   }
 }
@@ -64,12 +64,12 @@ class I_InstructionSuite extends FunSuite {
   
   test("swc1 is opcode, rt is t0, rs is ra, immediate is 0x00ff") {
     val instruction = I_Instruction("swc1", RA, T0, 0x00ff)
-    assert(instruction.toInt === Integer.parseInt("11100101000111110000000011111111", 2))
+    assert(instruction.toInt === 0xe51f00ff) // 11100101000111110000000011111111
   }
   
   test("invalid opcode") {
-    val thrown = intercept[MatchError] {
-      I_Instruction("sltu", Zero, Zero, 0)
+    val thrown = intercept[IllegalArgumentException] {
+      I_Instruction("sltu", Zero, Zero, 0).toInt
     }
   }
 }
@@ -92,8 +92,8 @@ class J_InstructionSuite extends FunSuite {
   }
   
   test("invalid instruction") {
-    val thrown = intercept[MatchError] {
-      J_Instruction("sltu", 0)
+    val thrown = intercept[IllegalArgumentException] {
+      J_Instruction("sltu", 0).toInt
     }
   }
 }

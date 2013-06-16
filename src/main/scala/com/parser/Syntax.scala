@@ -106,7 +106,7 @@ sealed abstract class Instruction {
 }
 
 case class R_Instruction(opcode: String, dest: Register, left: Register, right: Register) extends Instruction {
-	override def toInt = left.toInt << 21 | right.toInt << 16 | dest.toInt << 6 | (opcode match {
+	override def toInt = left.toInt << 21 | right.toInt << 16 | dest.toInt << 11 | (opcode match {
 	case "sllv" => 0x04
 	case "srlv" => 0x06
 	case "srav" => 0x07
@@ -132,6 +132,7 @@ case class R_Instruction(opcode: String, dest: Register, left: Register, right: 
 	case "nor" => 0x27
 	case "slt" => 0x2a
 	case "sltu" => 0x2b
+  case _ => throw new IllegalArgumentException("opcode did not match instruction")
   })
 }
 
@@ -140,6 +141,7 @@ case class R_ShiftInstruction(opcode: String, dest: Register, source: Register, 
     case "sll" => 0x00
     case "srl" => 0x02
     case "sra" => 0x03
+    case _ => throw new IllegalArgumentException("opcode did not match instruction")
   })
 }
 
@@ -172,6 +174,7 @@ case class I_Instruction(opcode: String, dest: Register, source: Register, immed
       case "sw" => 0x2b
       case "lwc1" => 0x31
       case "swc1" => 0x39
+      case _ => throw new IllegalArgumentException("opcode did not match instruction")
     }) << 26 | rs << 21 | rt << 16 | immed
   }
 }
@@ -180,5 +183,6 @@ case class J_Instruction(opcode: String, address: Int) extends Instruction {
   override def toInt = (opcode match {
     case "j" => 0x02
     case "jal" => 0x03
+    case _ => throw new IllegalArgumentException("opcode did not match instruction")
   }) << 26 | address
 }
