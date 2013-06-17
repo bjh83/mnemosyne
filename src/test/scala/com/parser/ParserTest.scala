@@ -1,13 +1,13 @@
 package com.parser
 
+import scala.collection.mutable.HashMap
 import scala.util.parsing.input.{CharSequenceReader, Reader}
 import org.scalatest.{FunSuite, BeforeAndAfter}
 
 class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
   var parser: AssemblyParser = _
 
-  import immediate._
-
+  implicit def toImmediate(number: Int) = new Immediate(new Right(number), new HashMap[String, Int])
   implicit def stringToReader(in: String): Reader[Char] = new CharSequenceReader(in)
 
   before {
@@ -204,7 +204,7 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     var result = i_parser("beq $t0, $t3, label")
     assert(result successful)
     intercept[IllegalArgumentException] {
-      result.get
+      result.get.toInt
     }
     var stringResult = parser.label("label:")
     assert(stringResult successful)
@@ -217,7 +217,7 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     result = i_parser("bne $s1, $t2, label2")
     assert(result successful)
     intercept[IllegalArgumentException] {
-      result.get
+      result.get.toInt
     }
     stringResult = parser.label("label2:")
     assert(stringResult successful)
@@ -233,10 +233,13 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     var result = i_parser("bgez $s0, label")
     assert(result successful)
     intercept[IllegalArgumentException] {
-      result.get
+      result.get.toInt
     }
     result = i_parser("bltz $v0, label")
-    assert(!result.successful)
+    assert(result successful)
+    intercept[IllegalArgumentException] {
+      result.get.toInt
+    }
     var stringResult = parser.label("label:")
     assert(stringResult successful)
     result = i_parser("bltz $v0, label")
@@ -248,7 +251,7 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     result = i_parser("bltz $s0, label2")
     assert(result successful)
     intercept[IllegalArgumentException] {
-      result.get
+      result.get.toInt
     }
     stringResult = parser.label("label2:")
     assert(stringResult successful)
@@ -267,7 +270,7 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     var result = parser.j_instruction("j label")
     assert(result successful)
     intercept[IllegalArgumentException] {
-      result.get
+      result.get.toInt
     }
     var stringResult = parser.label("label:")
     assert(stringResult successful)
@@ -280,7 +283,7 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     result = parser.j_instruction("jal label2")
     assert(result successful)
     intercept[IllegalArgumentException] {
-      result.get
+      result.get.toInt
     }
     stringResult = parser.label("label2:")
     assert(stringResult successful)

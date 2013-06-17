@@ -1,5 +1,7 @@
 package com.parser
 
+import scala.collection.mutable.HashMap
+
 sealed abstract class Register {
   def toInt: Int
 }
@@ -148,7 +150,7 @@ case class R_ShiftInstruction(opcode: String, dest: Register, source: Register, 
 class Immediate(immed: Either[String, Int], map: HashMap[String, Int]) {
   def toInt = immed match {
     case Left(label) => if(map contains label) {
-      label
+      map(label)
     } else {
       throw new IllegalArgumentException("the label: " + label + " was not declared")
     }
@@ -160,11 +162,6 @@ class Immediate(immed: Either[String, Int], map: HashMap[String, Int]) {
   } else {
     false
   }
-}
-
-package object immediate {
-  implicit def toImmediate(label: String) = new Immediate(new Left(label), labelTable)
-  implicit def toImmediate(number: Int) = new Immediate(new Right(number), labelTable)
 }
 
 case class I_Instruction(opcode: String, dest: Register, source: Register, immed: Immediate) extends Instruction {
@@ -201,10 +198,10 @@ case class I_Instruction(opcode: String, dest: Register, source: Register, immed
   }
 }
 
-case class J_Instruction(opcode: String, address: Int) extends Instruction {
+case class J_Instruction(opcode: String, address: Immediate) extends Instruction {
   override def toInt = (opcode match {
     case "j" => 0x02
     case "jal" => 0x03
     case _ => throw new IllegalArgumentException("opcode did not match instruction")
-  }) << 26 | address
+  }) << 26 | address.toInt
 }

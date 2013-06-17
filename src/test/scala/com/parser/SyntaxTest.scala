@@ -1,10 +1,9 @@
 package com.parser
 
+import scala.collection.mutable.HashMap
 import org.scalatest.FunSuite
 
 class R_InstructionSuite extends FunSuite {
-
-  import immediate._
   
   test("sllv is the opcode, with all zero registers") {
     val instruction = R_Instruction("sllv", Zero, Zero, Zero)
@@ -54,8 +53,8 @@ class R_ShiftInstructionSuite extends FunSuite {
 
 class I_InstructionSuite extends FunSuite {
 
-  import immediate._
-  
+  implicit def toImmediate(number: Int) = new Immediate(new Right(number), new HashMap[String, Int])
+
   test("addi is the opcode, rt is zero, rs is zero, immediate is zero") {
     val instruction = I_Instruction("addi", Zero, Zero, 0)
     assert(instruction.toInt === Integer.parseInt("00100000000000000000000000000000", 2))
@@ -80,6 +79,8 @@ class I_InstructionSuite extends FunSuite {
 
 class J_InstructionSuite extends FunSuite {
   
+  implicit def toImmediate(number: Int) = new Immediate(new Right(number), new HashMap[String, Int])
+
   test("j is instruction, address is zero") {
     val instruction = J_Instruction("j", 0)
     assert(instruction.toInt === Integer.parseInt("00001000000000000000000000000000", 2))

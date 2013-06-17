@@ -8,8 +8,6 @@ class AssemblyParser extends RegexParsers {
   private var lineCount = 0
   private var labelTable = new HashMap[String, Int]
 
-  import immediate._
-
   private class LabelParser(val label: String) extends Parser[String] {
     var success = !(labelTable contains label)
     if(success) {
@@ -24,6 +22,10 @@ class AssemblyParser extends RegexParsers {
   
   val identifier: Parser[String] = """\w+""".r
   val number: Parser[Int] = """\d+""".r ^^ { _.toInt }
+
+  implicit def toImmediate(label: String) = new Immediate(new Left(label), labelTable)
+  implicit def toImmediate(number: Int) = new Immediate(new Right(number), labelTable)
+
   val checkInstruction: Parser[String] = ("add" | "addu" | "and" | "nor" | "or" | "sllv" | "slt" |
       "sltu" | "srav" | "srlv" | "sub" | "subu" | "xor" | "sll" | "sra" | "srl" | "div" | "divu" |
       "mult" | "multu" | "jalr" | "jr" | "mtlo" | "mthi" | "mflo" | "mfhi" | "break" | "syscall" |
@@ -80,17 +82,17 @@ class AssemblyParser extends RegexParsers {
   }
   
   val i_compareInstruction3: Parser[I_Instruction] = ("beq" | "bne") ~ register ~ ("," ~> register) ~ ("," ~> identifier) ^^ {
-    case opcode ~ left ~ right ~ label => I_Instruction(opcode, left, right, labelTable(label))
+    case opcode ~ left ~ right ~ label => I_Instruction(opcode, right, left, label)
   }
   
   val i_compareInstruction2: Parser[I_Instruction] = ("bgez" | "bgtz" | "blez" | "bltz") ~ register ~ ("," ~> identifier) ^^ {
-    case opcode ~ left ~ label => I_Instruction(opcode, left, Zero, labelTable(label))
+    case opcode ~ left ~ label => I_Instruction(opcode, Zero, left, label)
   }
   
   val i_instruction: Parser[Instruction] = i_instruction3 | i_load_store_instruction | lui | i_compareInstruction3 | i_compareInstruction2
   
-  val j_instruction: Parser[Instruction] = ("j" | "jal") ~ identifier ^^ {
-    case opcode ~ label => J_Instruction(opcode, labelTable(label))
+  val j_instruction: Parser[Instruction] = ("jal" | "j") ~ identifier ^^ {
+    case opcode ~ label => J_Instruction(opcode, label)
   }
   
   val line: Parser[Instruction] = label.? ~ (r_instruction | i_instruction | j_instruction) ^^ {
