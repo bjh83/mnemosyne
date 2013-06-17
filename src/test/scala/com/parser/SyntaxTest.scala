@@ -3,6 +3,8 @@ package com.parser
 import org.scalatest.FunSuite
 
 class R_InstructionSuite extends FunSuite {
+
+  import immediate._
   
   test("sllv is the opcode, with all zero registers") {
     val instruction = R_Instruction("sllv", Zero, Zero, Zero)
@@ -51,6 +53,8 @@ class R_ShiftInstructionSuite extends FunSuite {
 }
 
 class I_InstructionSuite extends FunSuite {
+
+  import immediate._
   
   test("addi is the opcode, rt is zero, rs is zero, immediate is zero") {
     val instruction = I_Instruction("addi", Zero, Zero, 0)

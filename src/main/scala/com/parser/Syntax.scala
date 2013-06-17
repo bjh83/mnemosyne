@@ -145,7 +145,29 @@ case class R_ShiftInstruction(opcode: String, dest: Register, source: Register, 
   })
 }
 
-case class I_Instruction(opcode: String, dest: Register, source: Register, immed: Int) extends Instruction {
+class Immediate(immed: Either[String, Int], map: HashMap[String, Int]) {
+  def toInt = immed match {
+    case Left(label) => if(map contains label) {
+      label
+    } else {
+      throw new IllegalArgumentException("the label: " + label + " was not declared")
+    }
+    case Right(number) => number
+  }
+
+  override def equals(any: Any): Boolean = if(any.isInstanceOf[Immediate]) {
+    any.asInstanceOf[Immediate].toInt == toInt
+  } else {
+    false
+  }
+}
+
+package object immediate {
+  implicit def toImmediate(label: String) = new Immediate(new Left(label), labelTable)
+  implicit def toImmediate(number: Int) = new Immediate(new Right(number), labelTable)
+}
+
+case class I_Instruction(opcode: String, dest: Register, source: Register, immed: Immediate) extends Instruction {
   override def toInt = { 
     var rs = source.toInt
     var rt = dest.toInt
@@ -175,7 +197,7 @@ case class I_Instruction(opcode: String, dest: Register, source: Register, immed
       case "lwc1" => 0x31
       case "swc1" => 0x39
       case _ => throw new IllegalArgumentException("opcode did not match instruction")
-    }) << 26 | rs << 21 | rt << 16 | immed
+    }) << 26 | rs << 21 | rt << 16 | immed.toInt
   }
 }
 

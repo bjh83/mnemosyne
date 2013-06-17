@@ -8,6 +8,8 @@ class AssemblyParser extends RegexParsers {
   private var lineCount = 0
   private var labelTable = new HashMap[String, Int]
 
+  import immediate._
+
   private class LabelParser(val label: String) extends Parser[String] {
     var success = !(labelTable contains label)
     if(success) {
@@ -40,8 +42,8 @@ class AssemblyParser extends RegexParsers {
     case opcode ~ dest ~ source ~ immed => R_ShiftInstruction(opcode, dest, source, immed)
   }
   
-  val r_instruction2: Parser[R_Instruction] = ("div" | "divu" | "mult" | "multu") ~ register ~ ("," ~> register) ^^ {
-    case opcode ~ dest ~ right => R_Instruction(opcode, dest, Zero, right)
+  val r_instruction2: Parser[R_Instruction] = ("divu" | "div" | "multu" | "mult") ~ register ~ ("," ~> register) ^^ {
+    case opcode ~ left ~ right => R_Instruction(opcode, Zero, left, right)
   }
   
   val jalr: Parser[R_Instruction] = "jalr" ~ register ~ ("," ~> register) ^^ {

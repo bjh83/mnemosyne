@@ -6,6 +6,8 @@ import org.scalatest.{FunSuite, BeforeAndAfter}
 class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
   var parser: AssemblyParser = _
 
+  import immediate._
+
   implicit def stringToReader(in: String): Reader[Char] = new CharSequenceReader(in)
 
   before {
@@ -101,10 +103,6 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     result = parser.r_instruction2("multu $s3, $s5")
     assert(result successful)
     assert(result.get === R_Instruction("multu", Zero, S3, S5))
-    result = parser.r_instruction2("div $t0, $t7, $s3")
-    assert(!result.successful)
-    result = parser.r_instruction2("div $t0, $t7, 100")
-    assert(!result.successful)
     result = parser.r_instruction2("add $v0, $s1")
     assert(!result.successful)
   }
@@ -116,8 +114,6 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     result = parser.jalr("jalr $v0, $s1")
     assert(result successful)
     assert(result.get === R_Instruction("jalr", V0, S1, Zero))
-    result = parser.jalr("jalr $t0, $t9, $v0")
-    assert(!result.successful)
     result = parser.jalr("add $v0, $s1")
     assert(!result.successful)
   }
@@ -126,13 +122,11 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     val r_parser = parser.r_instruction1_source
     var result = r_parser("jr $fp")
     assert(result successful)
-    assert(result.get === R_Instruction("jr", Zero, Zero, FP))
+    assert(result.get === R_Instruction("jr", Zero, FP, Zero))
     result = r_parser("mtlo $t0")
     assert(result successful)
-    assert(result.get === R_Instruction("mtlo", Zero, Zero, T0))
+    assert(result.get === R_Instruction("mtlo", Zero, T0, Zero))
     result = r_parser("add $t0")
-    assert(!result.successful)
-    result = r_parser("jr $t0, $t9")
     assert(!result.successful)
   }
 
@@ -146,8 +140,6 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     assert(result.get === R_Instruction("mfhi", T0, Zero, Zero))
     result = r_parser("and $t0")
     assert(!result.successful)
-    result = r_parser("mflo $gp, $t0")
-    assert(!result.successful)
   }
 
   test("r_instruction0 parser") {
@@ -158,8 +150,6 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     assert(result successful)
     assert(result.get === R_Instruction("syscall", Zero, Zero, Zero))
     result = parser.r_instruction0("xor")
-    assert(!result.successful)
-    result = parser.r_instruction0("break $t0")
     assert(!result.successful)
   }
 
@@ -212,9 +202,12 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
   test("i_compareInstruction3 parser") {
     val i_parser = parser.i_compareInstruction3
     var result = i_parser("beq $t0, $t3, label")
-    assert(!result.successful)
-    result = parser.label("label:")
     assert(result successful)
+    intercept[IllegalArgumentException] {
+      result.get
+    }
+    var stringResult = parser.label("label:")
+    assert(stringResult successful)
     result = i_parser("beq $t0, $t3, label")
     assert(result successful)
     assert(result.get === I_Instruction("beq", T3, T0, 0))
@@ -222,9 +215,12 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     assert(result successful)
     assert(result.get === I_Instruction("bne", T2, S1, 0))
     result = i_parser("bne $s1, $t2, label2")
-    assert(!result.successful)
-    result = parser.label("label2:")
     assert(result successful)
+    intercept[IllegalArgumentException] {
+      result.get
+    }
+    stringResult = parser.label("label2:")
+    assert(stringResult successful)
     result = i_parser("bne $s1, $t2, label2")
     assert(result successful)
     assert(result.get === I_Instruction("bne", T2, S1, 0))
@@ -235,11 +231,14 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
   test("i_compareInstruction2 parser") {
     val i_parser = parser.i_compareInstruction2
     var result = i_parser("bgez $s0, label")
-    assert(!result.successful)
+    assert(result successful)
+    intercept[IllegalArgumentException] {
+      result.get
+    }
     result = i_parser("bltz $v0, label")
     assert(!result.successful)
-    result = parser.label("label:")
-    assert(result successful)
+    var stringResult = parser.label("label:")
+    assert(stringResult successful)
     result = i_parser("bltz $v0, label")
     assert(result successful)
     assert(result.get === I_Instruction("bltz", Zero, V0, 0))
@@ -247,9 +246,12 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
     assert(result successful)
     assert(result.get === I_Instruction("bgez", Zero, S0, 0))
     result = i_parser("bltz $s0, label2")
-    assert(!result.successful)
-    result = parser.label("label2:")
     assert(result successful)
+    intercept[IllegalArgumentException] {
+      result.get
+    }
+    stringResult = parser.label("label2:")
+    assert(stringResult successful)
     result = i_parser("bltz $s0, label2")
     assert(result successful)
     assert(result.get === I_Instruction("bltz", Zero, S0, 0))
@@ -263,11 +265,27 @@ class AssemblyParserSuite extends FunSuite with BeforeAndAfter {
 
   test("j_instruction parser") {
     var result = parser.j_instruction("j label")
-    assert(!result.successful)
-    result = parser.label("label:")
     assert(result successful)
+    intercept[IllegalArgumentException] {
+      result.get
+    }
+    var stringResult = parser.label("label:")
+    assert(stringResult successful)
     result = parser.j_instruction("j label")
     assert(result successful)
     assert(result.get === J_Instruction("j", 0))
+    result = parser.j_instruction("jal label")
+    assert(result successful)
+    assert(result.get === J_Instruction("jal", 0))
+    result = parser.j_instruction("jal label2")
+    assert(result successful)
+    intercept[IllegalArgumentException] {
+      result.get
+    }
+    stringResult = parser.label("label2:")
+    assert(stringResult successful)
+    assert(result.get === J_Instruction("jal", 0))
+    result = parser.j_instruction("beq label")
+    assert(!result.successful)
   }
 }
